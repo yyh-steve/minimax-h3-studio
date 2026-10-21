@@ -1,0 +1,20 @@
+{
+  "passed": true,
+  "scope": "real loopback HTTP + SQLite + worker + ffmpeg synthetic media; NO H3 inference",
+  "checks": [
+    "Bearer authentication",
+    "POST task_id",
+    "queued query",
+    "worker execution",
+    "succeeded query",
+    "signed MP4 download without Bearer",
+    "list",
+    "queued cancel",
+    "unsupported 2K rejection",
+    "example client creates and saves receipt",
+    "example client resumes without another POST"
+  ],
+  "synthetic_video_bytes": 8037,
+  "synthetic_video_sha256": "da1d89435114b5ec494e392a50977abfc3760c419481db3c116f17389b66341d",
+  "source_video_is_h3_output": false
+}

@@ -1,0 +1,70 @@
+name: tests
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  pipeline:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    defaults:
+      run:
+        working-directory: pipeline/backend
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: pip
+          cache-dependency-path: pipeline/backend/requirements*.lock
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - run: sudo apt-get update && sudo apt-get install -y ffmpeg fonts-noto-cjk
+      - run: python -m pip install -r requirements-dev.lock
+      - run: python -m pytest -q
+        env:
+          H3_PROVIDER: mock
+          M3_PROVIDER: mock
+      - run: node --test tests/test_web_security.cjs
+
+  h3-api:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    defaults:
+      run:
+        working-directory: h3-api
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: pip
+          cache-dependency-path: h3-api/requirements*.lock
+      - run: sudo apt-get update && sudo apt-get install -y ffmpeg
+      - run: python -m pip install -r requirements-dev.lock
+      - run: python -m pytest -q
+      - run: python tests/http_smoke.py
+
+  cpu-lightweight:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: sudo apt-get update && sudo apt-get install -y ffmpeg
+      - run: python -m pip install numpy==2.5.3 pillow==12.3.0
+      - name: Run without model weights or torch
+        run: >-
+          python -m unittest test_duration_seconds test_exact_duration
+          test_exact_duration_qa test_ref2va_inputs test_modelscope_download
+          test_source_provenance test_qa_reference_match -q
+        env:
+          PYTHONPATH: cpu-runtime

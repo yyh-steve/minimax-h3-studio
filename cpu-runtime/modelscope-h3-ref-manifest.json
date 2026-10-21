@@ -1,0 +1,118 @@
+{
+  "schema": 1,
+  "selection": "ref",
+  "model": "MiniMaxAI/MiniMax-H3",
+  "revision": "42ed227ee7df40d41602854ae760620d6eb651fe",
+  "source_model": "MiniMax/MiniMax-H3",
+  "source_revision": "57559a6720ddaa2eaee52b09ec2ef011127997b2",
+  "checked_at": "2026-10-19T04:26:03.367495+00:00",
+  "layout": "Supplement to the audited 63-file CPU base selection: transformer_ref only; reuses shared components and excludes transformer/T2VA and raw Ref2VA copies",
+  "source_manifest_url": "https://modelscope.cn/api/v1/models/MiniMax/MiniMax-H3/repo/files?Revision=57559a6720ddaa2eaee52b09ec2ef011127997b2&Recursive=true",
+  "reference_manifest_url": "https://huggingface.co/api/models/MiniMaxAI/MiniMax-H3/tree/42ed227ee7df40d41602854ae760620d6eb651fe/transformer_ref?recursive=true&expand=false&limit=1000",
+  "base_manifest_sha256": "9bc11dfa6abbf7faef7ab80159f522a4fe3cc64c98d72ca949a34ffed74c5346",
+  "audit": {
+    "files_matched": 16,
+    "lfs_sha256_matches": 14,
+    "git_blob_and_content_sha256_matches": 2,
+    "downloaded_weight_bytes_for_audit": 0
+  },
+  "files": [
+    {
+      "path": "transformer_ref/config.json",
+      "size": 546,
+      "sha256": "74c11bff524336576096993cbfcdcdc2ef4fa2fa4409df693bdcbc6c666282ae",
+      "verification": "HF fixed-revision content hashed; Git blob and ModelScope SHA256 matched"
+    },
+    {
+      "path": "transformer_ref/diffusion_pytorch_model-00001-of-00014.safetensors",
+      "size": 4825958704,
+      "sha256": "7a3fcad885f51560e550b2e84c9a8d8b35e62996cfd9076937e992bd23478df9",
+      "verification": "HF fixed-revision LFS SHA256 and size matched ModelScope metadata"
+    },
+    {
+      "path": "transformer_ref/diffusion_pytorch_model-00002-of-00014.safetensors",
+      "size": 4702158032,
+      "sha256": "1638ae1dc8ae26c4ba43ad28a6d851ad8983847324bb2b468719c7c81f219706",
+      "verification": "HF fixed-revision LFS SHA256 and size matched ModelScope metadata"
+    },
+    {
+      "path": "transformer_ref/diffusion_pytorch_model-00003-of-00014.safetensors",
+      "size": 4933368192,
+      "sha256": "1ef3c4954ffe5a664c2e3028e2a3241190d9c159dce6ba1136002c6af1db5353",
+      "verification": "HF fixed-revision LFS SHA256 and size matched ModelScope metadata"
+    },
+    {
+      "path": "transformer_ref/diffusion_pytorch_model-00004-of-00014.safetensors",
+      "size": 4567069608,
+      "sha256": "12d92f2975cfd5c5b786126385c52e5bf64884d4b4d6e60c3ef5d857c3f7469f",
+      "verification": "HF fixed-revision LFS SHA256 and size matched ModelScope metadata"
+    },
+    {
+      "path": "transformer_ref/diffusion_pytorch_model-00005-of-00014.safetensors",
+      "size": 4702158080,
+      "sha256": "304d41ce03d59ac94bceb055935bf4e034df0badf8b0df4ded327c08a288a4cc",
+      "verification": "HF fixed-revision LFS SHA256 and size matched ModelScope metadata"
+    },
+    {
+      "path": "transformer_ref/diffusion_pytorch_model-00006-of-00014.safetensors",
+      "size": 4933368232,
+      "sha256": "12a134b7c76d86edbe8fa2dc315f6cdaf4e1aca1b6ea4dfe4cad92df03d42eeb",
+      "verification": "HF fixed-revision LFS SHA256 and size matched ModelScope metadata"
+    },
+    {
+      "path": "transformer_ref/diffusion_pytorch_model-00007-of-00014.safetensors",
+      "size": 4567069608,
+      "sha256": "b96395261359937c00fb42f4eb29306dc59b1a3368eeba52af4fb66e3e142c69",
+      "verification": "HF fixed-revision LFS SHA256 and size matched ModelScope metadata"
+    },
+    {
+      "path": "transformer_ref/diffusion_pytorch_model-00008-of-00014.safetensors",
+      "size": 4702158080,
+      "sha256": "1897a6bf3b4fc834bb82d73ca02a7afc7d38c07f50ec5382cd54cd2f91b604d1",
+      "verification": "HF fixed-revision LFS SHA256 and size matched ModelScope metadata"
+    },
+    {
+      "path": "transformer_ref/diffusion_pytorch_model-00009-of-00014.safetensors",
+      "size": 4933368232,
+      "sha256": "edfb38235adc96b99f55a401849befce59075a745e99c2d8c63ff358dd36443d",
+      "verification": "HF fixed-revision LFS SHA256 and size matched ModelScope metadata"
+    },
+    {
+      "path": "transformer_ref/diffusion_pytorch_model-00010-of-00014.safetensors",
+      "size": 4567069608,
+      "sha256": "f8710775cf3413670edd7e23861b650a3431a71a6cc14cb1080623ab6b052385",
+      "verification": "HF fixed-revision LFS SHA256 and size matched ModelScope metadata"
+    },
+    {
+      "path": "transformer_ref/diffusion_pytorch_model-00011-of-00014.safetensors",
+      "size": 4702158080,
+      "sha256": "9e18acc09f84edb5b34df9628efa15cfcab8bb76e8e20c1c2e979a107a0f7215",
+      "verification": "HF fixed-revision LFS SHA256 and size matched ModelScope metadata"
+    },
+    {
+      "path": "transformer_ref/diffusion_pytorch_model-00012-of-00014.safetensors",
+      "size": 4933368232,
+      "sha256": "ea2e18228f8bdba1a4e0f32b155e4586df055997c45356213d05b971ba13e2f4",
+      "verification": "HF fixed-revision LFS SHA256 and size matched ModelScope metadata"
+    },
+    {
+      "path": "transformer_ref/diffusion_pytorch_model-00013-of-00014.safetensors",
+      "size": 4567069608,
+      "sha256": "1e12083b1875678f7414ff55b09cd8bb1c30b861243f9bb7ff1e75b6ad3f1bdc",
+      "verification": "HF fixed-revision LFS SHA256 and size matched ModelScope metadata"
+    },
+    {
+      "path": "transformer_ref/diffusion_pytorch_model-00014-of-00014.safetensors",
+      "size": 4644161920,
+      "sha256": "b340f44b5690cc745d48ae399381ec15b26a4fe25d483f677ccb4960dadb50d4",
+      "verification": "HF fixed-revision LFS SHA256 and size matched ModelScope metadata"
+    },
+    {
+      "path": "transformer_ref/diffusion_pytorch_model.safetensors.index.json",
+      "size": 64488,
+      "sha256": "ac30a3b58963f2e735d493475fbb81853a5735ec947619648b3e045acda6783e",
+      "verification": "HF fixed-revision content hashed; Git blob and ModelScope SHA256 matched"
+    }
+  ],
+  "total_bytes": 66280569250
+}

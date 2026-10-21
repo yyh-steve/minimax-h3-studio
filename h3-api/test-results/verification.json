@@ -1,0 +1,24 @@
+{
+  "api_tests_passed": 75,
+  "api_subtests_passed": 108,
+  "runner_targeted_passed": 39,
+  "runner_targeted_skipped": 2,
+  "runner_dry_run_cases": 12,
+  "http_socket_smoke_passed": true,
+  "fake_runner_subprocess_cases": 3,
+  "new_h3_inference_run": true,
+  "cloud_deployed": true,
+  "scope": "One real CPU single-image Ref2VA request: 5 seconds, 768x768; other durations/canvases not model-tested through this API",
+  "review": "Independent implementation review found no blocking issue",
+  "environment_limitations": [
+    "Two installed-PyAV runner tests skipped locally",
+    "Unchanged torch-dependent audio-resample suite not rerun in this lightweight environment"
+  ],
+  "model_venv_subprocess_cases": 2,
+  "deployment_generator_tests": 9,
+  "end_to_end_verified": true,
+  "real_h3_job_status": "succeeded",
+  "cloud_final_state": "savings_stopped",
+  "client_disconnect_recovered": true,
+  "api_restart_persistence": true
+}

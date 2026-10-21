@@ -1,0 +1,14 @@
+# Install CPU-only torch/torchvision first from the PyTorch CPU wheel index.
+# These exact source revisions contain the audited H3 ModularPipeline API.
+diffusers @ git+https://github.com/huggingface/diffusers.git@b800f828f3951c4d206e154411bcbfa693cd322e
+transformers @ git+https://github.com/huggingface/transformers.git@d4804f9d76b8c071b993d813e9e87067b780cbee
+torch>=2.6
+accelerate>=0.31.0
+huggingface-hub>=1.32.0,<3.0
+safetensors>=0.8.0
+av>=14.0
+pillow>=10
+numpy>=1.26
+soundfile>=0.12
+sentencepiece>=0.2
+protobuf>=4

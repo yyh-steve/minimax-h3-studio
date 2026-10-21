@@ -1,0 +1,19 @@
+{
+  "project": "huggingface/diffusers",
+  "repository": "https://github.com/huggingface/diffusers",
+  "commit": "b800f828f3951c4d206e154411bcbfa693cd322e",
+  "license": "Apache-2.0",
+  "modified": false,
+  "files": {
+    "autoencoder_kl_minimax_h3.py": {
+      "upstream_path": "src/diffusers/models/autoencoders/autoencoder_kl_minimax_h3.py",
+      "sha256": "58e0ed47fdee8227d738eec5bb1e7a47acc21c65ee3de01aa3795c97d679d015",
+      "bytes": 42128
+    },
+    "LICENSE": {
+      "upstream_path": "LICENSE",
+      "sha256": "f9e2070c247517b1ddf65f7b11b393484a18da91a958fd18a97bd0f241c3125c",
+      "bytes": 11357
+    }
+  }
+}

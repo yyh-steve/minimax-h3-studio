@@ -1,0 +1,566 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>H3 图文短视频流水线</title>
+<style>
+  :root{--ink:#1a1b1c;--sub:#5f6670;--line:#e4e3dd;--bg:#f7f7f5;--blue:#4f6b9a;--bluebg:#e9eef6;
+    --green:#35705a;--greenbg:#eef5f1;--warn:#9a6a2f;--warnbg:#f8f1e7;--red:#a14e50;--redbg:#f7eded;}
+  *{box-sizing:border-box}
+  body{margin:0;font:14px/1.5 -apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei",sans-serif;color:var(--ink);background:var(--bg)}
+  header{padding:10px 16px;background:#fff;border-bottom:1px solid var(--line);display:flex;gap:12px;align-items:center;flex-wrap:wrap}
+  header h1{font-size:15px;margin:0}
+  .tabs{display:flex;gap:4px}
+  .tabs button{border:1px solid var(--line);background:#fff;border-radius:6px;padding:6px 12px;cursor:pointer}
+  .tabs button.on{background:var(--blue);border-color:var(--blue);color:#fff}
+  .meta{color:var(--sub);font-size:12px}
+  main{padding:14px 16px;max-width:1280px;margin:0 auto}
+  .tab{display:none}.tab.on{display:block}
+  .card{background:#fff;border:1px solid var(--line);border-radius:8px;padding:14px;margin-bottom:14px}
+  .card h2{font-size:14px;margin:0 0 10px}
+  label{display:block;font-size:12px;color:var(--sub);margin:8px 0 3px}
+  input[type=text],input[type=password],input[type=number],select,textarea{width:100%;padding:7px 9px;border:1px solid #c9cdd3;border-radius:6px;font:inherit;background:#fff;color:var(--ink)}
+  textarea{resize:vertical;min-height:64px}
+  .row{display:flex;gap:8px;flex-wrap:wrap}.row>*{flex:1 1 120px}
+  button.act{padding:7px 12px;border-radius:6px;border:1px solid #b8bec6;background:#fff;cursor:pointer;font:inherit}
+  button.primary{background:var(--blue);border-color:var(--blue);color:#fff}
+  button.big{padding:10px 18px;font-weight:600}
+  button:disabled{opacity:.45;cursor:not-allowed}
+  .pill{display:inline-block;padding:1px 9px;border-radius:10px;font-size:12px;border:1px solid #c9cdd3;background:#fff}
+  .pill.accepted{border-color:var(--green);color:var(--green);background:var(--greenbg);font-weight:600}
+  .pill.queued,.pill.running,.pill.submitting,.pill.pending,.pill.downloading,.pill.succeeded{border-color:var(--blue);color:#34507f;background:var(--bluebg)}
+  .pill.rejected,.pill.needs_edit,.pill.review,.pill.unknown,.pill.paused,.pill.backoff{border-color:var(--warn);color:#7a5220;background:var(--warnbg)}
+  .pill.cancelled,.pill.expired{border-color:var(--red);color:var(--red);background:var(--redbg)}
+  .pill.checking,.pill.downloaded{border-color:var(--blue);color:#34507f;background:var(--bluebg)}
+  .muted{color:var(--sub);font-size:12px}
+  .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:10px}
+  .proj{border:1px solid var(--line);border-radius:8px;padding:12px;cursor:pointer;background:#fff}
+  .proj:hover{border-color:var(--blue)}
+  .thumbs{display:flex;gap:8px;flex-wrap:wrap;margin-top:6px}
+  .thumbs figure{margin:0;width:84px;text-align:center}
+  .thumbs img{width:84px;height:84px;object-fit:cover;border:1px solid var(--line);border-radius:6px;display:block}
+  .thumbs figcaption{font-size:11px;color:var(--sub);word-break:break-all}
+  .sb-layout{display:grid;grid-template-columns:minmax(260px,1fr) minmax(300px,1.4fr);gap:14px;align-items:start}
+  @media(max-width:1000px){.sb-layout{grid-template-columns:1fr}}
+  .shotlist .item{border:1px solid var(--line);border-radius:6px;padding:8px 10px;margin-bottom:6px;cursor:pointer}
+  .shotlist .item.on{border-color:var(--blue);background:var(--bluebg)}
+  .duration-bar{display:flex;height:18px;border-radius:4px;overflow:hidden;border:1px solid var(--line);margin:8px 0}
+  .duration-bar span{display:flex;align-items:center;justify-content:center;font-size:11px;color:#fff;overflow:hidden;white-space:nowrap}
+  .issue{border-radius:6px;padding:7px 10px;margin-bottom:6px;font-size:13px}
+  .issue.blocker{background:var(--redbg);border:1px solid #e3c4c5;color:var(--red)}
+  .issue.suggestion{background:var(--warnbg);border:1px solid #e3cfb3;color:#7a5220}
+  .take{border:1px solid var(--line);border-radius:8px;padding:10px 12px;margin-bottom:10px}
+  .take .top{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+  .take video{width:100%;max-width:300px;margin-top:8px;border-radius:6px;background:#000}
+  .err{color:var(--red);font-size:12px;margin-top:6px}
+  .events{font-size:12px;max-height:200px;overflow:auto}
+  .events div{padding:1px 0}
+  pre{white-space:pre-wrap;word-break:break-all;background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:8px;font-size:11px;max-height:140px;overflow:auto}
+  .banner{font-size:12px;padding:6px 9px;border-radius:6px;margin-bottom:8px;display:none}
+  .banner.err{display:block;background:var(--redbg);color:var(--red);border:1px solid #e3c4c5}
+  .banner.ok{display:block;background:var(--greenbg);color:var(--green);border:1px solid #c4ddd0}
+  .confirmbar{position:sticky;bottom:0;background:#fff;border:1px solid var(--line);border-radius:8px;padding:10px 14px;display:flex;gap:12px;align-items:center;flex-wrap:wrap;margin-top:10px}
+  .shotboard{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:10px}
+  .shotcard{border:1px solid var(--line);border-radius:8px;padding:10px;background:#fff}
+  .shotcard.reused{border-left:4px solid var(--green)}
+  .shotcard video{width:100%;border-radius:6px;background:#000;margin-top:8px}
+  .qcbox{margin-top:6px;font-size:12px;border-radius:6px;padding:6px 8px}
+  .qcbox.pass{background:var(--greenbg);color:var(--green)}
+  .qcbox.bad{background:var(--redbg);color:var(--red)}
+  .qcbox.ask{background:var(--warnbg);color:#7a5220}
+  .qcbox ul{margin:3px 0 0 16px;padding:0}
+  .renders video{width:100%;max-width:360px;border-radius:6px;background:#000}
+  .opts{display:flex;gap:14px;flex-wrap:wrap;align-items:center}
+  .opts label{margin:0;display:flex;gap:5px;align-items:center;color:var(--ink)}
+</style>
+</head>
+<body>
+<header>
+  <h1>H3 图文短视频流水线</h1>
+  <div class="tabs">
+    <button data-tab="projects" class="on" onclick="showTab('projects')">项目</button>
+    <button data-tab="storyboard" onclick="showTab('storyboard')">分镜</button>
+    <button data-tab="board" onclick="showTab('board')">生成看板</button>
+    <button data-tab="compose" onclick="showTab('compose')">合成出片</button>
+    <button data-tab="settings" onclick="showTab('settings')">设置</button>
+  </div>
+  <span style="flex:1"></span>
+  <span class="meta" id="health"></span>
+</header>
+
+<main>
+  <section id="tab-projects" class="tab on">
+    <div class="card">
+      <h2>新建项目</h2>
+      <div id="pErr" class="banner"></div>
+      <div class="row">
+        <div style="flex:2 1 240px"><label>商品名</label><input type="text" id="pName" placeholder="例如：便携榨汁杯"></div>
+        <div><label>画幅</label><select id="pRatio"><option>9:16</option><option>16:9</option><option>1:1</option><option>3:4</option><option>4:3</option><option>21:9</option></select></div>
+        <div><label>目标时长(秒)</label><input type="number" id="pSeconds" value="30" min="15" max="60"></div>
+      </div>
+      <div class="row">
+        <div style="flex:2 1 240px"><label>卖点（一行一条，会要求分镜全部覆盖）</label><textarea id="pPoints" placeholder="30 秒出汁&#10;可拆洗"></textarea></div>
+        <div><label>风格</label><input type="text" id="pStyle" placeholder="干净、明亮、生活感"></div>
+        <div><label>违禁词（逗号分隔，可选）</label><input type="text" id="pBanned"></div>
+      </div>
+      <div style="margin-top:10px"><button class="act primary" onclick="createProject()">创建项目</button></div>
+    </div>
+    <div class="card"><h2>项目列表</h2><div class="grid" id="projectList"></div></div>
+  </section>
+
+  <section id="tab-storyboard" class="tab">
+    <div id="sbNoProject" class="card muted">请先在「项目」里创建或选择一个项目。</div>
+    <div id="sbMain" style="display:none">
+      <div class="card">
+        <h2 id="sbTitle">素材与需求</h2>
+        <div id="sbBanner" class="banner"></div>
+        <div class="muted" id="sbMeta"></div>
+        <div id="sbLocalHint" class="issue suggestion" style="margin-top:8px" hidden>本地 H3 仅支持 MiniMax-H3、768P、单张参考图（reference）、每镜 4–15 秒。已有分镜的模式和素材会保留；首帧、首尾帧或文生镜头需手动改为参考图，清空首尾帧并只保留一张参考素材，再做规则校验。</div>
+        <label>上传商品图（自动生成目标画幅的「居中裁切 / 模糊补边」首帧候选）</label>
+        <input type="file" id="assetFile" accept="image/*" multiple onchange="uploadAssets()">
+        <div class="thumbs" id="assetThumbs"></div>
+        <div style="margin-top:10px;display:flex;gap:8px;flex-wrap:wrap">
+          <button class="act primary" onclick="generateStoryboard()">① 用 M3 生成分镜</button>
+          <button class="act" onclick="validateStoryboard()">规则校验</button>
+          <button class="act" onclick="reviewStoryboard()">M3 评审</button>
+          <button class="act" onclick="rewriteAll()">按意见整份重写</button>
+          <button class="act" id="reviseBtn" style="display:none;border-color:var(--warn);color:#7a5220" onclick="reviseStoryboard()">修改分镜（开新版本）</button>
+        </div>
+      </div>
+
+      <div class="sb-layout">
+        <div>
+          <div class="card">
+            <h2>商品理解卡（可改，改完会作为后续重写的事实）</h2>
+            <label>外观（只能写图里可见的）</label><textarea id="cardAppearance"></textarea>
+            <label>品类 / 名称</label>
+            <div class="row"><input type="text" id="cardName"><input type="text" id="cardCategory"></div>
+            <label>风险/需确认说法（一行一条）</label><textarea id="cardRisk"></textarea>
+            <div style="margin-top:8px"><button class="act" onclick="saveCard()">保存理解卡</button></div>
+          </div>
+          <div class="card shotlist">
+            <h2>镜头 <span class="muted" id="shotTotal"></span></h2>
+            <div class="duration-bar" id="durationBar"></div>
+            <div id="shotList"></div>
+          </div>
+        </div>
+
+        <div>
+          <div class="card" id="shotEditorCard">
+            <h2>镜头编辑</h2>
+            <div class="muted" id="shotEditorHint">在左侧选一个镜头。</div>
+            <div id="shotForm" style="display:none">
+              <div class="row">
+                <div><label>用途</label><select id="shPurpose"><option>hook</option><option>pain</option><option>feature</option><option>scene</option><option>trust</option><option>cta</option></select></div>
+                <div><label>时长 4-15s</label><input type="number" id="shDuration" min="4" max="15"></div>
+                <div><label>生成方式</label><select id="shMode"><option value="first_frame">首帧</option><option value="first_last">首尾帧</option><option value="reference">参考图</option><option value="t2v">文生</option></select></div>
+              </div>
+              <label>画面</label><textarea id="shVisual"></textarea>
+              <label>动作（一个镜头一个主要动作）</label><textarea id="shAction"></textarea>
+              <label>运镜</label><input type="text" id="shCamera">
+              <label>字幕（后期叠加，不进生成画面）</label><input type="text" id="shSubtitle">
+              <div class="row">
+                <div><label>人声</label><select id="shVoiceType"><option value="none">无</option><option value="on_screen">画内口播</option><option value="voiceover">画外音(P1)</option></select></div>
+                <div style="flex:2 1 240px"><label>口播文案</label><input type="text" id="shVoiceText"></div>
+              </div>
+              <label>引用素材（asset_id；首帧/尾帧各 1 个，参考图多个用逗号分隔）</label>
+              <div class="row"><input type="text" id="shFirst" placeholder="first_frame"><input type="text" id="shLast" placeholder="last_frame"><input type="text" id="shRefs" placeholder="ref1, ref2"></div>
+              <label>自定义提示词（留空则按模板拼装）</label><textarea id="shOverride"></textarea>
+              <div style="margin-top:8px;display:flex;gap:8px;flex-wrap:wrap">
+                <button class="act primary" onclick="saveShot()">保存镜头</button>
+                <button class="act" onclick="rewriteShot()">让 M3 重写这一镜</button>
+              </div>
+            </div>
+          </div>
+          <div class="card">
+            <h2>质检面板</h2>
+            <div id="qcIssues" class="muted">点「规则校验」或「M3 评审」后在这里看结果。</div>
+          </div>
+          <div class="confirmbar">
+            <span id="confirmInfo" class="muted"></span>
+            <span style="flex:1"></span>
+            <button class="act primary big" id="confirmBtn" onclick="confirmStoryboard()">② 确认并开始生成 H3</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section id="tab-board" class="tab">
+    <div class="card">
+      <h2>生成看板 <span class="muted" id="boardSummary"></span>
+        <span style="float:right">
+          <select id="boardProject" onchange="loadBoard()"><option value="">全部项目</option></select>
+          <button class="act" onclick="toggleQueue()" id="queueBtn">暂停</button>
+          <label class="muted"><input type="checkbox" id="auto" checked> 自动刷新</label>
+        </span>
+      </h2>
+      <div id="projectShots" style="margin-bottom:14px"></div>
+      <div id="takes"></div>
+    </div>
+    <div class="card"><h2>事件日志</h2><div class="events" id="events"></div></div>
+  </section>
+
+  <section id="tab-compose" class="tab">
+    <div class="card">
+      <h2>合成出片 <span class="muted" id="composeProjectLabel"></span></h2>
+      <div id="composeBanner" class="banner"></div>
+      <div class="grid" style="grid-template-columns:1fr 1fr;align-items:start" id="composeReady">
+        <div>
+          <div class="opts" style="margin-bottom:10px">
+            <label><input type="radio" name="rTransition" value="cut" checked> 硬切</label>
+            <label><input type="radio" name="rTransition" value="fade"> 淡入淡出 0.3s</label>
+          </div>
+          <div class="opts" style="margin-bottom:10px">
+            <label><input type="checkbox" id="rSubtitles" checked> 后期叠加字幕</label>
+            <label><input type="checkbox" id="rKeepAudio" checked> 保留镜头原声</label>
+            <label><input type="checkbox" id="rUseBgm" checked> 使用 BGM</label>
+          </div>
+          <div class="opts" style="margin-bottom:10px">
+            <label>BGM 音量 <input type="range" id="rBgmVol" min="0" max="1" step="0.05" value="0.25" style="width:120px"></label>
+            <label>原声音量 <input type="range" id="rOrigVol" min="0" max="2" step="0.05" value="1" style="width:120px"></label>
+          </div>
+          <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+            <label class="act" style="cursor:pointer">上传 BGM
+              <input type="file" id="bgmFile" accept="audio/*" style="display:none"></label>
+            <span class="muted" id="bgmStatus"></span>
+            <button class="act" onclick="deleteBgm()" id="bgmDel" style="display:none">删除 BGM</button>
+            <span style="flex:1"></span>
+            <button class="act primary big" onclick="startRender()" id="renderBtn">开始合成</button>
+          </div>
+          <div class="muted" style="margin-top:8px">合成只在本地跑 ffmpeg，不再花 H3/M3 的费用；可以反复调整参数重新合成。</div>
+        </div>
+        <div>
+          <h2 style="margin-top:0">合成记录</h2>
+          <div id="renderList" class="renders"></div>
+        </div>
+      </div>
+      <div id="composeHint" class="muted">请先在「项目」里选择一个项目。所有镜头都采纳后才能合成。</div>
+    </div>
+  </section>
+
+  <section id="tab-settings" class="tab">
+    <div class="card" style="max-width:560px">
+      <h2>运行配置</h2>
+      <div id="settingsBanner" class="banner" role="status" aria-live="polite"></div>
+      <div class="row">
+        <div><label>M3 provider</label><select id="setM3"><option value="mock">mock</option><option value="official">official</option></select></div>
+        <div><label>H3 provider</label><select id="setH3" onchange="onH3ProviderChange()"><option value="mock">mock</option><option value="local">local</option><option value="official">official</option></select></div>
+        <div><label>H3 Mock 场景</label><select id="setScenario">
+          <option value="success">成功</option><option value="rate_limit">首次429</option>
+          <option value="sensitive">422敏感</option><option value="balance">402余额</option>
+          <option value="create_timeout">创建超时</option><option value="fail_running">运行失败</option>
+          <option value="cancel_ok">停在排队</option></select></div>
+      </div>
+      <div id="settingsLocalHint" class="issue suggestion" style="margin-top:10px" hidden>本地 H3 仅支持 MiniMax-H3、768P、单张参考图（reference）、每镜 4–15 秒。Base URL 示例：http://127.0.0.1:30010。建议并发 1、自动重试 0，先关闭 M3 看片。本地失败需人工处理，不会自动重新生成；保存设置不会转换已有分镜。</div>
+      <label>M3 Base URL</label><input type="text" id="setM3Base">
+      <label>H3 Base URL</label><input type="text" id="setH3Base">
+      <div class="muted" style="margin-top:6px">存在活动任务时，后端会拒绝切换 provider 或 Base URL；请先处理这些任务。</div>
+      <label for="setM3Key">M3 API Key</label><input type="password" id="setM3Key" autocomplete="new-password" spellcheck="false">
+      <label for="setH3Key">H3 API Key</label><input type="password" id="setH3Key" autocomplete="new-password" spellcheck="false">
+      <div class="muted" style="margin-top:6px">Key 保存在当前应用进程；需要重启后保留时请配置本机 .env。留空不改原值，保存成功后清空输入框。旧共享 Key 仅在 official 且独立 Key 未设置时使用；local 必须填写与本地服务一致的独立 H3 Key（至少 24 位无空白 ASCII 字符）。</div>
+      <div class="row">
+        <div><label>并发</label><input type="number" id="setConcurrency" min="1" max="8"></div>
+        <div><label>自动重试次数</label><input type="number" id="setRetry" min="0" max="5"></div>
+        <div><label>输出秒数预算</label><input type="number" id="setBudget"></div>
+      </div>
+      <div class="row">
+        <div style="flex:0 1 auto"><label><input type="checkbox" id="setM3Review" style="width:auto"> 技术检查后再让 M3 看片</label></div>
+        <div><label>看片 fps（官网 0.2-5，默认 2）</label><input type="number" id="setReviewFps" min="0.2" max="5" step="0.1"></div>
+        <div><label>看片清晰度</label><select id="setReviewDetail"><option value="low">low 省 token</option><option value="default">default</option><option value="high">high</option></select></div>
+        <div><label>假 M3 看片结果</label><select id="setMockReview">
+          <option value="pass">通过</option><option value="fail_once">首次不通过</option>
+          <option value="fail">总不通过</option><option value="uncertain">拿不准</option>
+          <option value="error_once">首次报错</option></select></div>
+      </div>
+      <div style="margin-top:10px"><button class="act primary" id="saveSettingsBtn" onclick="saveSettings()">保存设置</button></div>
+    </div>
+  </section>
+</main>
+
+<script>
+let settings={}, projects=[], currentProject=null, currentSb=null, assets=[], selectedShot=null;
+const $=id=>document.getElementById(id);
+async function api(path,opts={}){const r=await fetch(path,{headers:{'Content-Type':'application/json'},...opts});const d=await r.json().catch(()=>({}));if(!r.ok)throw new Error(d.detail||d.message||r.status);return d;}
+function esc(s){return String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
+function showErr(id,m){const n=$(id);if(!m){n.className='banner';return}n.className='banner err';n.textContent=m;}
+function showOk(id,m){const n=$(id);n.className='banner ok';n.textContent=m;}
+
+function showTab(t){document.querySelectorAll('.tabs button').forEach(b=>b.classList.toggle('on',b.dataset.tab===t));document.querySelectorAll('.tab').forEach(s=>s.classList.toggle('on',s.id==='tab-'+t));if(t==='board')loadBoard();if(t==='settings')loadSettingsForm();if(t==='projects')loadProjects();if(t==='compose')loadCompose();}
+
+async function loadHealth(){
+  try{const h=await api('/api/health');$('health').textContent=(h.ok?'已连接':'配置异常')+(h.paused?' · 队列暂停':'');$('queueBtn')&&($('queueBtn').textContent=h.paused?'恢复队列':'暂停队列');}
+  catch(e){$('health').textContent='连接失败';}
+}
+function renderProviderHints(){
+  $('settingsLocalHint').hidden=$('setH3').value!=='local';
+  $('sbLocalHint').hidden=settings.provider!=='local';
+}
+function onH3ProviderChange(){
+  if($('setH3').value==='local'&&settings.provider!=='local'){
+    const officialHosts=['api.minimax.cn','api.minimaxi.com','api.minimax.io','api.minimax.chat','api.minimaxi.chat'];
+    const value=$('setH3Base').value.trim();
+    let official=false;try{official=officialHosts.includes(new URL(value).hostname.toLowerCase().replace(/\.$/,''));}catch{}
+    if(!value||official)$('setH3Base').value='http://127.0.0.1:30010';
+    $('setH3Key').value='';$('setH3Key').placeholder='请输入自部署服务的独立 Key';
+    $('setConcurrency').value='1';$('setRetry').value='0';$('setM3Review').checked=false;
+  }
+  renderProviderHints();
+}
+async function loadSettings(){settings=await api('/api/settings');renderProviderHints();}
+async function loadSettingsForm(){await loadSettings();setM3.value=settings.m3_provider;setH3.value=settings.provider;setScenario.value=settings.mock_scenario;setM3Base.value=settings.m3_base_url;setH3Base.value=settings.h3_base_url;setConcurrency.value=settings.max_concurrency;setRetry.value=settings.auto_retry_limit;setBudget.value=settings.budget_output_seconds;
+  $('setH3Key').value='';$('setM3Key').value='';
+  $('setH3Key').placeholder=settings.h3_api_key_set?'已配置（留空不改）':settings.provider==='local'?'未配置（local 必填）':'未配置（可留空）';
+  $('setM3Key').placeholder=settings.m3_api_key_set?'已配置（留空不改）':'未配置（可留空）';
+  $('setM3Review').checked=settings.m3_take_review!==false;
+  $('setReviewFps').value=settings.m3_review_fps??2;
+  $('setReviewDetail').value=settings.m3_review_detail||'low';
+  $('setMockReview').value=settings.m3_mock_review||'pass';renderProviderHints();}
+async function saveSettings(){
+  const b={m3_provider:setM3.value,provider:setH3.value,mock_scenario:setScenario.value,m3_base_url:setM3Base.value.trim(),h3_base_url:setH3Base.value.trim(),max_concurrency:+setConcurrency.value,auto_retry_limit:+setRetry.value,budget_output_seconds:+setBudget.value,m3_take_review:$('setM3Review').checked,m3_review_fps:+$('setReviewFps').value,m3_review_detail:$('setReviewDetail').value,m3_mock_review:$('setMockReview').value};
+  if($('setH3Key').value.trim())b.h3_api_key=$('setH3Key').value.trim();
+  if($('setM3Key').value.trim())b.m3_api_key=$('setM3Key').value.trim();
+  if(b.provider==='local'&&settings.provider!=='local'&&!b.h3_api_key){showErr('settingsBanner','切换到 local 时请填写该自部署服务的独立 H3 Key，不能沿用官方密钥。');return;}
+  $('saveSettingsBtn').disabled=true;showErr('settingsBanner','');
+  try{
+    await api('/api/settings',{method:'PUT',body:JSON.stringify(b)});
+    $('setH3Key').value='';$('setM3Key').value='';
+    showOk('settingsBanner','设置已保存');
+    try{await loadSettingsForm();}catch(e){showErr('settingsBanner','设置已保存，但刷新配置失败，请重新打开设置页。');}
+  }catch(e){showErr('settingsBanner',e.message);}
+  finally{$('saveSettingsBtn').disabled=false;}
+}
+
+async function createProject(){
+  try{
+    const body={name:pName.value.trim(),ratio:pRatio.value,target_seconds:+pSeconds.value,style:pStyle.value,
+      selling_points:pPoints.value.split('\n').map(s=>s.trim()).filter(Boolean),
+      banned_words:pBanned.value.split(/[，,\n]/).map(s=>s.trim()).filter(Boolean)};
+    if(!body.name)throw new Error('请填商品名');
+    const p=await api('/api/projects',{method:'POST',body:JSON.stringify(body)});
+    showErr('pErr','');await loadProjects();openProject(p.id);
+  }catch(e){showErr('pErr',e.message);}
+}
+async function loadProjects(){projects=await api('/api/projects');$('projectList').innerHTML=projects.map(p=>`<div class="proj" onclick="openProject(${p.id})"><b>${esc(p.name)}</b><div class="muted">${p.ratio} · ${p.target_seconds}s · ${p.status}</div><div class="muted">${(p.selling_points||[]).length} 条卖点</div></div>`).join('')||'<span class="muted">还没有项目</span>';
+  $('boardProject').innerHTML='<option value="">全部项目</option>'+projects.map(p=>`<option value="${p.id}">#${p.id} ${esc(p.name)}</option>`).join('');}
+async function openProject(id){currentProject=await api('/api/projects/'+id);await loadAssets();await loadActiveSb();$('sbNoProject').style.display='none';$('sbMain').style.display='block';$('sbTitle').textContent='#'+id+' '+currentProject.name+' · 素材与需求';$('sbMeta').textContent=`${currentProject.ratio} · 目标 ${currentProject.target_seconds}s · ${currentProject.draft_resolution} · ${currentProject.status}`;
+  $('cardName').value=currentProject.name;showTab('storyboard');}
+
+async function uploadAssets(){
+  for(const f of $('assetFile').files){
+    const fd=new FormData();fd.append('file',f);
+    const r=await fetch(`/api/projects/${currentProject.id}/assets`,{method:'POST',body:fd}).then(x=>x.json());
+    if(r.detail){showErr('sbBanner',r.detail);continue;}
+  }
+  $('assetFile').value='';await loadAssets();
+}
+async function loadAssets(){if(!currentProject)return;assets=await api(`/api/projects/${currentProject.id}/assets`);$('assetThumbs').innerHTML=assets.map(a=>`<figure><img src="/api/projects/${currentProject.id}/assets/${a.asset_id}"><figcaption class="muted">${a.kind==='original'?'原图':a.variant}<br>${a.asset_id.slice(0,8)}</figcaption></figure>`).join('');}
+
+async function loadActiveSb(){if(!currentProject)return;const d=await api(`/api/projects/${currentProject.id}/storyboards/active`);if(d.storyboard_id){currentSb=d;renderSb();}else{currentSb=null;$('shotList').innerHTML='';$('durationBar').innerHTML='';$('qcIssues').className='muted';$('qcIssues').textContent='还没有分镜，点上面的「用 M3 生成分镜」。';$('shotTotal').textContent='';$('confirmInfo').textContent='';$('confirmBtn').disabled=true;renderCardForm(null);}}
+async function generateStoryboard(){try{showErr('sbBanner','');currentSb=await api(`/api/projects/${currentProject.id}/storyboards/generate`,{method:'POST'});renderSb();showOk('sbBanner','分镜已生成，请校验和编辑');}catch(e){showErr('sbBanner',e.message);}}
+async function validateStoryboard(){try{const r=await api(`/api/storyboards/${currentSb.storyboard_id}/validate`,{method:'POST'});renderQc(r.issues,`规则校验：总时长 ${r.total_seconds}/${r.target_seconds}s`);refreshConfirm(r);}catch(e){showErr('sbBanner',e.message);}}
+async function reviewStoryboard(){try{const r=await api(`/api/storyboards/${currentSb.storyboard_id}/review`,{method:'POST'});renderQc(r.issues,'M3 评审：'+(r.summary||''));}catch(e){showErr('sbBanner',e.message);}}
+async function rewriteAll(){const inst=prompt('整份重写的意见（可留空）')||'';try{currentSb=await api(`/api/storyboards/${currentSb.storyboard_id}/rewrite-all`,{method:'POST',body:JSON.stringify({instruction:inst})});renderSb();}catch(e){showErr('sbBanner',e.message);}}
+
+function renderSb(){if(!currentSb)return;
+  const confirmed=currentSb.status==='confirmed';
+  $('reviseBtn').style.display=confirmed?'inline-block':'none';
+  $('shotTotal').textContent=`共 ${currentSb.shots.length} 镜 · v${currentSb.version} · ${confirmed?'已确认':'草稿'}`;
+  const colors=['#4f6b9a','#35705a','#9a6a2f','#7a4f8a','#4e7a85','#8a5a3a'];const total=currentSb.shots.reduce((a,s)=>a+s.duration,0);
+  $('durationBar').innerHTML=currentSb.shots.map((s,i)=>`<span style="width:${s.duration/total*100}%;background:${colors[i%colors.length]}" title="${esc(s.shot_key)} ${s.duration}s">${esc(s.shot_key)}</span>`).join('');
+  $('shotList').innerHTML=currentSb.shots.map(s=>`<div class="item ${selectedShot===s.shot_key?'on':''}" onclick="selectShot(${esc(JSON.stringify(s.shot_key))})"><b>${esc(s.shot_key)}</b> ${esc(s.purpose)} · ${s.mode} · ${s.duration}s<div class="muted">${esc((s.action||'').slice(0,30))}</div></div>`).join('');
+  renderCardForm(currentSb.product_card);if(selectedShot)selectShot(selectedShot);else if(currentSb.shots[0])selectShot(currentSb.shots[0].shot_key);
+  if(confirmed){
+    $('confirmInfo').textContent=`分镜已确认 · 预计输出 ${total} 秒 · 改稿请点「修改分镜（开新版本）」，只重跑变化的镜头`;
+    $('confirmBtn').disabled=true;
+    $('qcIssues').className='';$('qcIssues').innerHTML='<div class="muted">分镜已确认。改稿会开新版本，指纹没变的镜头沿用上一版成片。</div>';
+    return;
+  }
+  $('confirmInfo').textContent=`预计输出 ${total} 秒（确认前不会调用 H3）`;
+  api(`/api/storyboards/${currentSb.storyboard_id}/validate`,{method:'POST'}).then(r=>{renderQc(r.issues,`自动规则校验：总 ${r.total_seconds}/${r.target_seconds}s`);refreshConfirm(r);}).catch(()=>{});
+}
+async function reviseStoryboard(){
+  if(!confirm('基于当前已确认版本开一个可编辑的新版本？没改的镜头确认后会沿用上一版成片。'))return;
+  try{currentSb=await api(`/api/projects/${currentProject.id}/storyboards/revise`,{method:'POST'});selectedShot=null;renderSb();showOk('sbBanner','已开新版本草稿，改完再确认');}
+  catch(e){showErr('sbBanner',e.message);}
+}
+function renderCardForm(card){if(!card)return;$('cardAppearance').value=card.appearance||'';$('cardCategory').value=card.category||'';$('cardRisk').value=(card.risky_claims||[]).join('\n');}
+async function saveCard(){const card={...currentSb.product_card,name:$('cardName').value.trim()||currentProject.name,category:$('cardCategory').value,appearance:$('cardAppearance').value,risky_claims:$('cardRisk').value.split('\n').map(s=>s.trim()).filter(Boolean)};
+  currentSb=await api(`/api/storyboards/${currentSb.storyboard_id}/product-card`,{method:'PUT',body:JSON.stringify({card})});renderSb();}
+
+function selectShot(key){selectedShot=key;const s=currentSb.shots.find(x=>x.shot_key===key);if(!s)return;document.querySelectorAll('.shotlist .item').forEach(el=>el.classList.remove('on'));
+  $('shotEditorHint').style.display='none';$('shotForm').style.display='block';
+  shPurpose.value=s.purpose;shDuration.value=s.duration;shMode.value=s.mode;shVisual.value=s.visual;shAction.value=s.action;shCamera.value=s.camera;shSubtitle.value=s.subtitle;
+  shVoiceType.value=(s.audio&&s.audio.type)||'none';shVoiceText.value=(s.audio&&s.audio.text)||'';
+  shFirst.value=(s.images&&s.images.first_frame)||'';shLast.value=(s.images&&s.images.last_frame)||'';shRefs.value=((s.images&&s.images.references)||[]).join(', ');
+  shOverride.value=s.prompt_override||'';
+  document.querySelectorAll('.shotlist .item').forEach(el=>{if(el.textContent.startsWith(key+' '))el.classList.add('on')});}
+function shotFormPayload(){return{purpose:shPurpose.value,duration:+shDuration.value,mode:shMode.value,visual:shVisual.value,action:shAction.value,camera:shCamera.value,subtitle:shSubtitle.value,
+  audio:{type:shVoiceType.value,text:shVoiceText.value},images:{first_frame:shFirst.value.trim()||null,last_frame:shLast.value.trim()||null,references:shRefs.value.split(',').map(s=>s.trim()).filter(Boolean)},prompt_override:shOverride.value};}
+async function saveShot(){try{currentSb=await api(`/api/storyboards/${currentSb.storyboard_id}/shots/${encodeURIComponent(selectedShot)}`,{method:'PUT',body:JSON.stringify({patch:shotFormPayload()})});renderSb();showOk('sbBanner','镜头已保存');}catch(e){showErr('sbBanner',e.message);}}
+async function rewriteShot(){const inst=prompt('对这一镜的修改意见')||'';try{currentSb=await api(`/api/storyboards/${currentSb.storyboard_id}/shots/${encodeURIComponent(selectedShot)}/rewrite`,{method:'POST',body:JSON.stringify({instruction:inst})});renderSb();}catch(e){showErr('sbBanner',e.message);}}
+
+function renderQc(issues,title){const box=$('qcIssues');box.className='';const bl=issues.filter(i=>i.severity==='blocker'),su=issues.filter(i=>i.severity==='suggestion');
+  box.innerHTML=`<div style="margin-bottom:6px">${esc(title)} · <b style="color:${bl.length?'var(--red)':'var(--green)'}">${bl.length} 个阻断</b>，${su.length} 个建议</div>`+
+    issues.map(i=>`<div class="issue ${esc(i.severity)}">${i.shot_key?'['+esc(i.shot_key)+'] ':''}${esc(i.message)}${i.fix?'<div class="muted">建议：'+esc(i.fix)+'</div>':''}</div>`).join('')||'<div class="muted">没有发现问题。</div>';}
+function refreshConfirm(r){const bl=r.issues.filter(i=>i.severity==='blocker');$('confirmBtn').disabled=bl.length>0;$('confirmInfo').textContent=`预计输出 ${r.total_seconds} 秒 · ${bl.length? bl.length+' 个阻断未清零':'可以确认'}`;}
+async function confirmStoryboard(){if(!confirm('确认后只为变化的镜头调用 H3（没改的沿用上一版成片）。确定？'))return;try{const r=await api(`/api/storyboards/${currentSb.storyboard_id}/confirm`,{method:'POST'});showOk('sbBanner',`已确认：新建 ${r.new_shots} 个镜头，复用 ${r.reused_shots} 个，预计 ${r.estimated_output_seconds} 秒`);await openProject(currentProject.id);showTab('board');}catch(e){showErr('sbBanner',e.message);}}
+
+const STATUS_CN={pending:'待提交',submitting:'提交中',unknown:'结果未知',queued:'排队中',running:'生成中',succeeded:'平台成功',downloading:'下载中',downloaded:'待质检',checking:'质检中',rejected:'未通过',review:'人工审',needs_edit:'待修改',paused:'已暂停',backoff:'退避',cancelling:'取消确认中',cancelled:'已取消',expired:'已过期',accepted:'已采纳',pending_take:'待生成'};
+async function loadProjectShots(pid){
+  try{
+    const b=await api(`/api/projects/${pid}/board`);
+    if(!b.storyboard_id){$('projectShots').innerHTML='';return;}
+    const done=b.all_accepted;
+    $('projectShots').innerHTML=
+      `<div style="margin-bottom:8px"><b>当前分镜 v${b.storyboard_id}</b> · ${b.accepted}/${b.total} 镜完成 · 预计 ${b.estimated_output_seconds}s
+        · 已用平台输出 ${b.used_output_seconds}/${b.budget_seconds}s
+        ${done?' <span class="pill accepted">全部镜头就绪，可以去「合成出片」</span>':'<span class="muted">（自动刷新中）</span>'}</div>`+
+      `<div class="shotboard">`+b.shots.map(s=>`<div class="shotcard ${s.reused?'reused':''}">
+        <div><b>${esc(s.shot_key)}</b> ${esc(s.purpose)} · ${s.mode} · ${s.duration}s ${s.reused?'<span class="pill accepted">沿用上版</span>':''}</div>
+        <div style="margin-top:4px"><span class="pill ${s.status}">${STATUS_CN[s.status]||s.status}</span> ${s.attempt_no>1?`<span class="muted">第${s.attempt_no}次</span>`:''}</div>
+        ${s.subtitle?`<div class="muted">字幕：${esc(s.subtitle)}</div>`:''}
+        ${qcHtml(s.qc)}
+        ${s.error?`<div class="err">${esc(s.error.kind||'')} ${esc(s.error.message||'')}</div>`:''}
+        ${s.video_url?`<video controls src="${s.video_url}"></video>`:''}
+        <div style="margin-top:6px;display:flex;gap:6px;flex-wrap:wrap">
+          <button class="act" ${s.can_cancel?'':'disabled'} onclick="cancelTake(${s.take_id});loadBoard()">取消</button>
+          <button class="act" ${s.can_retry?'':'disabled'} onclick="retryTake(${s.take_id})">重试这镜</button>
+          ${s.can_bind_task?`<button class="act" onclick="bindTask(${s.take_id})">绑定平台任务</button>`:''}
+          <button class="act" ${s.can_accept?'':'disabled'} onclick="acceptTake(${s.take_id})">人工采纳</button>
+          <button class="act" ${s.can_requalify?'':'disabled'} onclick="requalifyTake(${s.take_id})">重新质检</button>
+        </div></div>`).join('')+`</div>`;
+  }catch(e){$('projectShots').innerHTML='';}
+}
+function qcHtml(q){
+  if(!q)return '';
+  const techBad=q.tech_passed===false;
+  const techTips=(q.tech_issues||[]).slice(0,3);
+  const m3Tips=(q.m3_issues||[]).map(i=>i);
+  const verdict=q.m3_verdict;
+  const parts=[];
+  parts.push(`技术检查：${q.tech_passed===true?'<b>通过</b>':q.tech_passed===false?'<b>不通过</b>':'未完成'}`);
+  if(verdict&&verdict!=='skipped')parts.push(`M3 看片：${verdict==='pass'?'<b>通过</b>':verdict==='fail'?'<b>不通过</b>':'<b>拿不准</b>'}`);
+  else if(verdict==='skipped')parts.push(`M3 看片：已关闭`);
+  const lines=[...techTips,...(q.m3_issues||[]).map(i=>i),(q.m3_retry_hint?'建议：'+q.m3_retry_hint:'')].filter(Boolean).slice(0,4);
+  const cls=techBad||verdict==='fail'?'bad':(verdict==='uncertain'?'ask':'pass');
+  return `<div class="qcbox ${cls}"><div>${parts.join(' · ')}</div>${q.m3_summary?`<div class="muted">${esc(q.m3_summary)}</div>`:''}${lines.length?`<ul>${lines.map(x=>`<li>${esc(x)}</li>`).join('')}</ul>`:''}</div>`;
+}
+async function acceptTake(id){
+  const note=prompt('人工采纳这条成片？可写一句备注（留空也可以）')||'';
+  try{await api(`/api/takes/${id}/accept`,{method:'POST',body:JSON.stringify({note})});showOk('boardOk','已采纳');}catch(e){alert(e.message);}
+  loadBoard();
+}
+async function requalifyTake(id){
+  if(!confirm('重新跑技术检查和 M3 看片？不重新生成视频，不花 H3 的钱。'))return;
+  await api(`/api/takes/${id}/requalify`,{method:'POST'});loadBoard();
+}
+async function loadBoard(){await loadHealth();const pid=$('boardProject').value;
+  await loadProjectShots(pid || (currentProject?currentProject.id:''));
+  const takes=await api('/api/takes?limit=80');const list=pid?takes.filter(t=>t.project_id===+pid):takes;
+  $('boardSummary').textContent=`共 ${list.length} 条 Take`;
+  $('takes').innerHTML=list.map(t=>`<div class="take"><div class="top"><span class="pill">#${t.id}${t.project_id?' · 项目'+t.project_id:''} · ${esc(t.shot_key)} · 第${t.attempt_no}次</span><span class="pill ${t.status}">${STATUS_CN[t.status]||t.status}</span><span class="muted">${t.platform_resolution||''} ${t.platform_duration?t.platform_duration+'s':''}</span><span style="flex:1"></span><button class="act" ${t.can_cancel?'':'disabled'} onclick="cancelTake(${t.id})">取消</button><button class="act" ${t.can_retry?'':'disabled'} onclick="retryTake(${t.id})">重试</button>${t.can_bind_task?`<button class="act" onclick="bindTask(${t.id})">绑定平台任务</button>`:''}</div>${t.error_json?`<div class="err">${esc(t.error_json.kind)} ${esc(t.error_json.code||'')} ${esc(t.error_json.message||'')}</div>`:''}${t.local_path?`<video controls src="/api/media/takes/${t.id}"></video>`:''}</div>`).join('')||'<span class="muted">没有生成任务。</span>';
+  const events=await api('/api/events?limit=30');$('events').innerHTML=events.map(e=>`<div>[${new Date(e.ts*1000).toLocaleTimeString()}] ${esc(e.type)}${e.project_id?' 项目'+e.project_id:''}${e.take_id?' #'+e.take_id:''} — ${esc(e.message)}</div>`).join('');}
+async function retryTake(id){await api(`/api/takes/${id}/retry`,{method:'POST',body:JSON.stringify({})});loadBoard();}
+async function bindTask(id){
+  const taskId=prompt('输入已在平台核实的准确任务 ID。将查询并绑定这条任务。');
+  if(!taskId||!taskId.trim())return;
+  try{await api(`/api/takes/${id}/bind-task`,{method:'POST',body:JSON.stringify({task_id:taskId.trim()})});showOk('boardOk','已绑定平台任务');await loadBoard();}
+  catch(e){alert(e.message);}
+}
+async function cancelTake(id){await api(`/api/takes/${id}/cancel`,{method:'POST'});loadBoard();}
+async function toggleQueue(){const h=await api('/api/health');await api(h.paused?'/api/queue/resume':'/api/queue/pause',{method:'POST'});loadBoard();}
+setInterval(()=>{if($('tab-board').classList.contains('on')&&$('auto').checked)loadBoard();},2000);
+setInterval(()=>{if($('tab-compose').classList.contains('on'))refreshRendersOnly();},3000);
+
+// ---------- 合成出片 ----------
+let composeBoard=null;
+async function loadCompose(){
+  showErr('composeBanner','');
+  if(!currentProject){
+    $('composeReady').style.display='none';$('composeHint').style.display='block';
+    $('composeHint').textContent='请先在「项目」里选择一个项目。';return;
+  }
+  $('composeProjectLabel').textContent=`#${currentProject.id} ${esc(currentProject.name)}`;
+  try{
+    composeBoard=await api(`/api/projects/${currentProject.id}/board`);
+  }catch(e){showErr('composeBanner',e.message);return;}
+  $('bgmStatus').textContent=composeBoard.has_bgm?'已上传项目 BGM':'（未上传 BGM，将不使用背景音乐）';
+  $('bgmDel').style.display=composeBoard.has_bgm?'inline-block':'none';
+  $('rUseBgm').disabled=!composeBoard.has_bgm;
+  if(!composeBoard.has_bgm)$('rUseBgm').checked=false;
+  if(composeBoard.can_render){
+    $('composeReady').style.display='grid';$('composeHint').style.display='none';
+    $('renderBtn').disabled=false;
+  }else{
+    $('composeReady').style.display='grid';$('composeHint').style.display='block';
+    $('renderBtn').disabled=true;
+    if(!composeBoard.storyboard_id){
+      $('composeHint').textContent='还没有确认的分镜。先去「分镜」生成并确认。';
+    }else if(composeBoard.status!=='confirmed'){
+      $('composeHint').textContent='当前分镜是草稿，确认后才能合成。';
+    }else{
+      const bad=composeBoard.shots.filter(s=>s.status!=='accepted').map(s=>`${s.shot_key}（${STATUS_CN[s.status]||s.status}）`);
+      $('composeHint').textContent='还有镜头没有采纳的成片：'+bad.join('、');
+    }
+  }
+  await loadRenders();
+}
+async function refreshRendersOnly(){
+  if(!currentProject||$('tab-compose').classList.contains('on')===false)return;
+  try{await loadRenders();}catch(e){}
+}
+async function loadRenders(){
+  if(!currentProject)return;
+  const rs=await api(`/api/projects/${currentProject.id}/renders`);
+  const cn={queued:'排队中',rendering:'合成中',done:'完成',failed:'失败'};
+  $('renderList').innerHTML=rs.map(r=>{
+    const warn=(r.warnings_json||[]).length?`<div class="muted">提示：${(r.warnings_json||[]).map(esc).join('；')}</div>`:'';
+    const err=r.error?`<div class="err">${esc(r.error)}</div>`:'';
+    const opts=r.options_json||{};
+    return `<div class="take"><div class="top"><span class="pill">#${r.id}</span><b>${cn[r.status]||r.status}</b>
+      <span class="muted">${opts.transition==='fade'?'淡入淡出':'硬切'}${opts.subtitles?' · 字幕':''}${opts.use_bgm&&r.plan_json?' · BGM':''}</span>
+      <span class="muted">${r.expected_duration?r.expected_duration.toFixed(1)+'s':''}</span><span style="flex:1"></span>
+      ${r.video_url?`<a class="act" href="${r.video_url}" target="_blank">播放</a> <a class="act primary" href="${r.download_url}">下载</a>`:''}</div>
+      ${err}${warn}</div>`;
+  }).join('')||'<span class="muted">还没有合成记录。</span>';
+}
+function renderOptions(){
+  return {
+    transition:document.querySelector('input[name=rTransition]:checked').value,
+    subtitles:$('rSubtitles').checked, keep_audio:$('rKeepAudio').checked,
+    use_bgm:$('rUseBgm').checked, bgm_volume:+$('rBgmVol').value,
+    original_volume:+$('rOrigVol').value,
+  };
+}
+async function startRender(){
+  if(!currentProject)return;
+  try{
+    const r=await api(`/api/projects/${currentProject.id}/renders`,{method:'POST',body:JSON.stringify(renderOptions())});
+    showOk('composeBanner',`合成 #${r.id} 已排队`);await loadRenders();
+  }catch(e){showErr('composeBanner',e.message);}
+}
+$('bgmFile').addEventListener('change',async()=>{
+  const f=$('bgmFile').files[0];if(!f)return;
+  const fd=new FormData();fd.append('file',f);
+  const r=await fetch(`/api/projects/${currentProject.id}/bgm`,{method:'POST',body:fd});
+  const d=await r.json().catch(()=>({}));
+  if(!r.ok){alert(d.detail||'上传失败');}else{showOk('composeBanner','BGM 已上传');}
+  $('bgmFile').value='';loadCompose();
+});
+async function deleteBgm(){
+  if(!confirm('删除项目 BGM？'))return;
+  await api(`/api/projects/${currentProject.id}/bgm`,{method:'DELETE'});loadCompose();
+}
+
+loadSettings().then(loadHealth).then(loadProjects).then(async () => {
+  // 支持 ?project=<id> 直接打开项目分镜页（便于联调和深链）
+  const pid = new URLSearchParams(location.search).get("project");
+  if (pid) {
+    try { await openProject(Number(pid)); } catch (e) {}
+  }
+});
+</script>
+</body>
+</html>

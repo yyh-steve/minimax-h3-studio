@@ -1,0 +1,12 @@
+# Validated core versions for Linux x86_64 and Python 3.12.
+# Install torch and torchvision from the official CPU wheel index first.
+# This is not a complete transitive dependency lock or a wheel hash lock.
+# The fixed Diffusers/Transformers commits remain in requirements-cpu.txt.
+torch==2.14.1+cpu
+torchvision==0.29.1+cpu
+accelerate==1.15.0
+huggingface-hub==1.33.0
+safetensors==0.8.0
+av==17.1.0
+pillow==12.3.0
+numpy==2.5.3

@@ -1,0 +1,10 @@
+*.py text eol=lf
+*.sh text eol=lf
+*.md text eol=lf
+*.html text eol=lf
+*.yml text eol=lf
+*.lock text eol=lf
+cpu-runtime/modelscope-h3-manifest.json -text
+cpu-runtime/modelscope-h3-ref-manifest.json -text
+*.docx binary
+*.mp4 binary
