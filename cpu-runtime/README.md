@@ -2,7 +2,7 @@
 
 从零安装、模型下载、API 接入和手动停止流程见 [部署指南](../docs/deployment.md)。本目录是 API 与流水线共用的 CPU runner；正式执行面向 Linux x86_64、Python 3.12 和高内存主机。
 
-`h3_cpu_trial.py` 提供分阶段检查、离线推理和媒体验收。推理必须显式加 `--execute-inference`；默认不会加载模型。`--duration-seconds 4..15` 先生成对齐的原生帧，再截取真实前缀为目标时长；没有插帧、补帧或变速。仅有单图 Ref2VA 的特定部署组合经过真实 API 验收，支持的参数范围不等于每种组合都已经测过。
+`h3_cpu_trial.py` 提供分阶段检查、离线推理和媒体验收。推理必须显式加 `--execute-inference`；默认不会加载模型。`--duration-seconds 4..15` 先生成对齐的原生帧，再截取真实前缀为目标时长；没有插帧、补帧或变速。自部署 H3 的 5 秒 API 样例和 15 秒电影人物样例见[生成记录](../docs/validation.md)。
 
 ## 安装与来源
 
