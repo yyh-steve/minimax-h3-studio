@@ -69,7 +69,7 @@ python3.12 -m venv .venv-api
 .venv-api/bin/python -m pip check
 ```
 
-`requirements.lock`固定已验证的API依赖版本。升级时应先更新锁文件并重新验证，不要跳过锁文件重新解析一套未经测试的最新依赖。
+`requirements.lock`固定API依赖版本。升级依赖时同步更新锁文件，并运行本项目的API回归检查。
 
 准备一个两端共用的私有密钥文件。下列命令只写本地文件，不打印密钥；文件已存在时会拒绝覆盖：
 
@@ -126,7 +126,7 @@ API默认仅绑定`127.0.0.1:30010`，以上步骤不开放公网。`H3_PUBLIC_B
 
 复用原模型环境前，需将发布包`cpu-runtime/`内更新后的`h3_cpu_trial.py`、`exact_duration.py`、`ref2va_inputs.py`、`ref_audio_resample.py`、`source_provenance.py`、`download_from_modelscope.py`及两份`modelscope-h3-*.json`审计清单同步到`H3_RUNNER_DIR`；源码目录就是本仓库的`cpu-runtime/`。也可以将`H3_RUNNER_DIR`设为解压后`cpu-runtime/`的绝对路径，前提是worker可访问它。runner必须支持`--duration-seconds`和`--prompt-file`。保留原模型权重、模型虚拟环境和源码来源记录；安装API包不会完成这些模型准备。
 
-`GET /healthz`只表示HTTP服务存活，返回的`model_readiness`为`not_checked`，不代表worker、模型或可用内存就绪。
+`GET /healthz`用于HTTP存活探测，返回的`model_readiness`固定为`not_checked`。模型作业进度通过任务状态和worker日志查看。
 
 ## 使用示例客户端
 
@@ -177,8 +177,8 @@ Authorization: Bearer <H3_API_KEY>
 
 | 方法与路径 | 行为 |
 |---|---|
-| `GET /healthz` | HTTP存活检查，不检查模型 |
-| `GET /capabilities` | 当前支持的参数与验证范围 |
+| `GET /healthz` | HTTP存活检查 |
+| `GET /capabilities` | 当前支持的参数与运行配置 |
 | `POST /v2/video_generation` | 提交JSON请求，返回`{"task_id":"..."}`；图片处理由worker执行 |
 | `GET /v2/query/video_generation/{task_id}` | 返回`{"task":{...}}` |
 | `GET /v2/query/video_generation` | 返回`items`和`total`；支持分页和过滤 |

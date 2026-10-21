@@ -43,4 +43,4 @@ H3_TEST_INSTALLED_ENCODER=1 H3_TEST_MODEL_DIR=/data/h3/model \
   python -m unittest -v test_exact_duration.InstalledEncoderTest
 ```
 
-该可选检查使用真实框架和合成小媒体，并读取本地模型元数据；它不等价于完整模型生成验收。生产验证仍需显式提交真实任务并检查报告、画面和声音。
+该可选检查使用真实框架和合成小媒体，并读取本地模型元数据。运行生成任务后，可结合输出报告检查画面和声音。

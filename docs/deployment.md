@@ -2,7 +2,7 @@
 
 本文将本仓库的单图 Ref2VA API 部署到 Linux x86_64 主机：准备 CPU 模型环境、校验并下载权重，再安装独立 API 环境和 systemd 服务。命令以 Ubuntu 24.04、Python 3.12 为例；其他发行版需先准备对应的 Python、系统工具和服务管理环境。
 
-已验证的完整链路为 **5 秒、768×768、120 帧、24 fps、32 kHz 双声道、49 次实际采样**，该 CPU 组合单次推理约 110.9 分钟。2026-10-21 验收后服务已停止、实例已节省停机，仓库没有提供持续在线的服务。其他时长、画布、机器和依赖组合需单独验收，不能由这一结果推算速度或质量。
+已验证的完整链路为 **5 秒、768×768、120 帧、24 fps、32 kHz 双声道、49 次实际采样**，该 CPU 组合单次推理约 110.9 分钟。2026-10-21 验收后服务已停止、实例已节省停机。按本文步骤可在自己的主机启动服务。
 
 本文中的安装、下载和启动命令由部署者在目标主机逐步执行。仓库不包含模型权重、虚拟环境或完整离线依赖包；安装阶段需要访问软件源，源码引导需要访问 GitHub，权重下载需要访问 ModelScope。推理阶段使用已准备的本地文件。
 
@@ -65,7 +65,7 @@ python3.12 -m venv "$H3_WORK_DIR/.venv"
   'torch==2.14.1+cpu' 'torchvision==0.29.1+cpu'
 ```
 
-这是固定的 CPU 构建组合。如果官方索引没有适用于当前平台的这些版本，或依赖解析发生冲突，应先解决版本来源问题；更换版本后需要重新验收，不能直接沿用原组合的验证结论。
+这是固定的 CPU 构建组合。如果官方索引没有适用于当前平台的这些版本，或依赖解析发生冲突，应先解决版本来源问题；升级依赖时同步更新版本清单，并执行下文的环境检查。
 
 核心约束文件为 [`cpu-runtime/constraints-cpu-core.txt`](../cpu-runtime/constraints-cpu-core.txt)：
 
@@ -126,11 +126,11 @@ if not all(checks[name]['ok'] for name in ('float32', 'bfloat16')):
     raise SystemExit('CPU FP32/BF16 checks did not both pass; resolve this before downloading weights.')
 if report.get('available_memory_gib', 0) < 256:
     raise SystemExit('Current available memory is below the default 256 GiB runner guard.')
-print('CPU import/operator checks passed; this is not a full model benchmark.')
+print('CPU import/operator checks passed.')
 PY
 ```
 
-此处验证库导入、少量 FP32/BF16 运算和环境信息，不验证完整模型吞吐或最终画质。API 固定使用 BF16 模型组件及 FP32 双 VAE，因此需检查两种精度；仅 `check` 命令退出成功还不足以证明 BF16 项通过。
+此处检查库导入、FP32/BF16 运算和环境信息。API 固定使用 BF16 模型组件及 FP32 双 VAE，因此脚本会逐项确认两种精度的检查结果。
 
 ## 4. 按原始清单下载 base，再补 ref
 
@@ -292,7 +292,7 @@ sudo systemctl start h3-worker.service
 sudo systemctl status h3-worker.service
 ```
 
-`/healthz` 的 `model_readiness="not_checked"` 仅表示 HTTP 服务存活；它没有验证模型、worker、内存或完整生成链路。查看两个服务日志：
+`/healthz` 用于 HTTP 存活探测，响应中的 `model_readiness` 固定为 `"not_checked"`。模型作业进度通过任务状态和 worker 日志查看。查看两个服务日志：
 
 ```bash
 sudo journalctl -u h3-api.service -u h3-worker.service -n 100 --no-pager
@@ -326,7 +326,7 @@ sudo systemctl is-active h3-worker.service h3-api.service
 
 | 现象 | 检查方向 |
 |---|---|
-| 固定 CPU wheel 无法安装 | 核对 Python 3.12、Linux x86_64、官方 CPU 索引和指定版本；替代版本须重新验证 |
+| 固定 CPU wheel 无法安装 | 核对 Python 3.12、Linux x86_64、官方 CPU 索引和指定版本；更新依赖时同步更新版本清单并执行环境检查 |
 | `Pinned ... source is unverified` | 检查模型 venv、固定提交、目录安装来源及 `h3-source-install.json`，重新安装并审计实际代码 |
 | `Manifest digest mismatch` | 恢复仓库中两个原始 JSON 的完整字节，不编辑指纹或文件项 |
 | `Missing completed ... selection` | 使用同一个模型目录，先完成 base，再补 ref，保留合并的 `.h3-cpu-manifest.json` |

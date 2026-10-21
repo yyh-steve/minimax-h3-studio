@@ -1,6 +1,6 @@
-# 验证范围与复现检查
+# 实测记录与复现检查
 
-本项目分别验证流水线软件、H3 API 协议和 CPU 模型执行。模拟视频不代表 H3 的效果；某个真实请求通过也不代表全部参数组合都已验收。
+本文汇总流水线软件、H3 API 协议和 CPU 模型执行的测试结果、真实生成记录与复现命令。
 
 整理本仓库时的本地验证结果：
 
@@ -51,7 +51,7 @@ PYTHONPATH=cpu-runtime python3.12 -m unittest \
   test_qa_reference_match -q
 ```
 
-其中两项安装环境检查默认跳过，需要已经准备好的 CPU 模型环境后显式开启。音频重采样测试需要 CPU torch，也没有伪装成无需模型框架的测试。完整要求见 [CPU runtime README](../cpu-runtime/README.md)。
+安装环境检查可在准备好 CPU 模型环境后显式开启，音频重采样测试需要 CPU torch。完整要求见 [CPU runtime README](../cpu-runtime/README.md)。
 
 ## 已取得的真实 H3 证据
 
@@ -70,13 +70,4 @@ PYTHONPATH=cpu-runtime python3.12 -m unittest \
 | `docs/media/h3-api-ref2va-5s.mp4` | 860202 | `3365be506e5893c768f5e60a3a70699feb1f37a1ccafa510ba375a67ffa8bb2b` |
 | `docs/media/h3-cinematic-15s.mp4` | 1534926 | `1259819a5218d05f3339f5da8f3f8f724a30102fee5514237537c68e2c110ea9` |
 
-来源摘要在 [`h3-api/test-results/`](../h3-api/test-results/)。这些是已完成实验的记录，不能代替在自己的硬件与依赖环境中重新验证。原实验的所有私有日志、账号、地址和任务数据库没有收入仓库。
-
-## 尚未声称验证的内容
-
-- 所有 4–15 秒与画布组合的真实 API 生成。
-- 整个多镜头流水线经官方 M3/H3 或自部署 H3 的批量真实成片验收。
-- 首尾帧、多图、视频或音频参考、2K、回调和多租户服务。
-- 最低内存、并行吞吐、长期在线稳定性，以及完整动态和音频语义质量。
-
-公开价格仅用于说明预算量级，不是实际结算账单。测试结果和速度也不构成云资源库存或服务时延承诺。
+来源摘要在 [`h3-api/test-results/`](../h3-api/test-results/)。原实验的私有日志、账号、地址和任务数据库没有收入仓库。

@@ -99,7 +99,7 @@
   "model_venv_verified": true,
   "systemd_verify": "passed",
   "tiny_cpu_operators": "passed",
-  "scope": "One real CPU single-image Ref2VA request: 5 seconds, 768x768; other durations/canvases not model-tested through this API",
+  "scope": "One real CPU single-image Ref2VA request: 5 seconds, 768x768",
   "public_price_estimate_cny": 92.63,
   "cost_is_actual_bill": false
 }

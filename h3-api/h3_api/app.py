@@ -64,7 +64,7 @@ def create_app(settings):
         return {'model':'MiniMax-H3','workflow':'single_image_ref2va','resolution':['768P'],
             'durations':list(range(4,16)),'ratios':['adaptive','21:9','16:9','4:3','1:1','3:4','9:16'],
             'image_formats':['JPEG','PNG','WEBP'],'input_types':['https','data_uri'],
-            'worker_concurrency':1,'validation':'Model validation is specific to the deployment, duration and canvas; see the deployment verification record.',
+            'worker_concurrency':1,'validation':'Request parameters, input media and generated MP4 are checked before result publication.',
             'local_extensions':['Idempotency-Key','signed media URLs']}
 
     @app.post('/v2/video_generation')

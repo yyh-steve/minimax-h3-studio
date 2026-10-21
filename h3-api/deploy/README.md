@@ -30,4 +30,4 @@ python3.12 deploy/render_units.py \
 
 普通配置与密钥分别位于目标主机的`/etc/h3-api/h3-api.env`和`/etc/h3-api/h3-api-secret.env`。密钥由操作者单独私有创建；生成器不会取用当前环境中的`H3_API_KEY`。缺少任一必需文件时服务启动失败，不能依赖空密钥启动。环境文件供systemd读取，不应直接source到shell。
 
-安装后仍需在目标Ubuntu主机上审阅、运行`systemd-analyze verify`并手动进行受控联调。内容测试不等于真实systemd或API到H3联调。手动启动worker可能处理已有排队任务；中断任务没有断点续推，也不会自动重算。停止服务、作业超时或OS关机均不等于停止云端计算计费，云资源收尾与存储维护仍由操作者负责。
+安装后在目标Ubuntu主机运行`systemd-analyze verify`检查unit配置，再按`INSTALL.txt`启动服务并提交任务。手动启动worker可能处理已有排队任务；中断任务没有断点续推，也不会自动重算。停止服务、作业超时或OS关机均不等于停止云端计算计费，云资源收尾与存储维护仍由操作者负责。

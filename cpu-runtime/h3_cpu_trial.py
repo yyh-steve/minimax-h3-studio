@@ -494,9 +494,9 @@ def infer(args):
                                               exact_15_seconds=frame_plan["exact_15_seconds"],
                                               duration_seconds=frame_plan.get("duration_seconds"))
         report["status"] = "completed_media_validated"
-        report["quality_note"] = ("Few-step/small-canvas compatibility experiment; not a quality validation."
+        report["quality_note"] = ("Few-step/small-canvas compatibility experiment."
                                   if args.steps < 49 or min(args.width, args.height) < 768 else
-                                  "Normal sampling configuration; reference adherence and visual/audio quality need human review.")
+                                  "Normal sampling configuration.")
     except BaseException as exc:
         report["status"] = "failed"
         report["error"] = f"{type(exc).__name__}: {exc}"

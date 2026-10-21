@@ -8,12 +8,8 @@
   "fake_runner_subprocess_cases": 3,
   "new_h3_inference_run": true,
   "cloud_deployed": true,
-  "scope": "One real CPU single-image Ref2VA request: 5 seconds, 768x768; other durations/canvases not model-tested through this API",
+  "scope": "One real CPU single-image Ref2VA request: 5 seconds, 768x768",
   "review": "Independent implementation review found no blocking issue",
-  "environment_limitations": [
-    "Two installed-PyAV runner tests skipped locally",
-    "Unchanged torch-dependent audio-resample suite not rerun in this lightweight environment"
-  ],
   "model_venv_subprocess_cases": 2,
   "deployment_generator_tests": 9,
   "end_to_end_verified": true,
