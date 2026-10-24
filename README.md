@@ -21,6 +21,12 @@
 
 调研方法、设备判断和资源选择过程见 [前期调研与选型](docs/research-and-selection.md)；安装步骤见 [CPU 部署指南](docs/deployment.md)，接口参数与调用方式见 [H3 API 说明](h3-api/README.md)。需要图形化创作流程时，再按下文安装视频工作台。
 
+## GPU 应该怎样选择
+
+H3 的 GPU 需求取决于精度与组件放置。上游提供 **单 80 GB＋CPU 卸载、双 80 GB 按组件分卡、4×H100 80 GB＋TP2/Ulysses2、4×H200 141 GB＋Ulysses4** 等路线；消费级 16/24/32 GB 则结合量化、逐层卸载与主机 RAM 规划。双 5090 的原精度配方还需要 384 GiB 级主机内存。
+
+完整对照见 [GPU 选型指南](docs/gpu-selection.md)：包含 A100/H100/H200 的不同形态、5060 Ti/4090/5090、双 48 GB 卡和 V100/T4，以及每卡显存、互联与 RAM 的判断。GPU 路线采用上游 SGLang/Diffusers；本仓库的安装步骤和 API worker 对应下面的 CPU 实现。
+
 ## 方案组成
 
 | 组件 | 部署位置 | 职责 |
@@ -116,6 +122,7 @@ minimax-h3-studio/
 ├── cpu-runtime/              # CPU runner、下载清单、来源审计与测试
 ├── docs/
 │   ├── research-and-selection.md # H3 条件、本地 GPU 评估与云资源选择
+│   ├── gpu-selection.md      # GPU 型号、每卡显存、并行与整机内存
 │   ├── deployment.md         # 从零安装 CPU 模型与 API
 │   ├── integration.md        # 自部署 H3 与 M3 接入配置
 │   ├── validation.md         # 测试方法、实测与限制
