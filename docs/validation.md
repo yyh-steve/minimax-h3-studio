@@ -2,7 +2,7 @@
 
 本文汇总流水线软件、H3 API 协议和 CPU 模型执行的测试结果、真实生成记录与复现命令。
 
-整理本仓库时的本地验证结果：
+软件测试记录：
 
 | 检查 | 结果 |
 | --- | --- |
@@ -53,7 +53,7 @@ PYTHONPATH=cpu-runtime python3.12 -m unittest \
 
 安装环境检查可在准备好 CPU 模型环境后显式开启，音频重采样测试需要 CPU torch。完整要求见 [CPU runtime README](../cpu-runtime/README.md)。
 
-## 已取得的真实 H3 证据
+## CPU 生成样例
 
 | 场景 | 输出 | 实测执行时间 | 验收 |
 | --- | --- | --- | --- |
@@ -61,7 +61,7 @@ PYTHONPATH=cpu-runtime python3.12 -m unittest \
 | 独立 runner 电影人物片 | 精确 15 秒，1344×768 | 约 14 小时 21 分钟 | 360 帧、24 fps、32 kHz 双声道 |
 | 新 API 真实单图参考 | 精确 5 秒，768×768 | 110.9 分钟 | 120 帧、49 次采样、完整解码、下载哈希一致 |
 
-最后一项还验证了客户端断线后按原任务 ID 恢复，以及 API 重启后的查询和签名下载；实际只生成一个任务。原实例在验收后进入节省停机模式，没有为了仓库整理再次开机。
+最后一项还验证了客户端断线后按原任务 ID 恢复，以及 API 重启后的查询和签名下载；实际只生成一个任务。
 
 两条随仓库提供的媒体：
 
@@ -70,4 +70,4 @@ PYTHONPATH=cpu-runtime python3.12 -m unittest \
 | `docs/media/h3-api-ref2va-5s.mp4` | 860202 | `3365be506e5893c768f5e60a3a70699feb1f37a1ccafa510ba375a67ffa8bb2b` |
 | `docs/media/h3-cinematic-15s.mp4` | 1534926 | `1259819a5218d05f3339f5da8f3f8f724a30102fee5514237537c68e2c110ea9` |
 
-来源摘要在 [`h3-api/test-results/`](../h3-api/test-results/)。原实验的私有日志、账号、地址和任务数据库没有收入仓库。
+测试摘要见 [`h3-api/test-results/`](../h3-api/test-results/)。

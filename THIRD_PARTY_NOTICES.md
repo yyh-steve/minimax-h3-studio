@@ -17,6 +17,6 @@ Python 和系统依赖仍遵循各自许可证。FFmpeg 的适用许可证与编
 
 `docs/media/h3-cinematic-15s.mp4` 和 `docs/media/h3-api-ref2va-5s.mp4` 是 H3 生成的虚构表演样例，不是原照片人物的真实录像。
 
-人物参考照片为 Lu Yu 的 **Asian young woman**，来源：[Wikimedia Commons](https://commons.wikimedia.org/wiki/File:Asian_young_woman.jpg)，许可：[CC BY 2.0](https://creativecommons.org/licenses/by/2.0/)。本项目对参考照片做了裁剪并用于生成样例；照片原图未包含在仓库中。Word 部署方案也保留了该署名和来源。
+人物参考照片为 Lu Yu 的 **Asian young woman**，来源：[Wikimedia Commons](https://commons.wikimedia.org/wiki/File:Asian_young_woman.jpg)，许可：[CC BY 2.0](https://creativecommons.org/licenses/by/2.0/)。本项目对参考照片做了裁剪并用于生成样例；照片原图未包含在仓库中。
 
 对样例的技术核验仅说明媒体可解码、时长和文件一致性等指标，不代表对模型输出授予了额外权利。项目与 MiniMax、火山引擎及其他依赖提供方没有官方隶属关系。

@@ -26,7 +26,7 @@ python3.12 deploy/render_units.py \
 
 两个unit均采用`Restart=no`、`UMask=0077`，没有`[Install]`节，也没有互相拉起服务的依赖，不注册开机启动。`WorkingDirectory=/`是有意设置：API安装在独立venv里，状态路径均为绝对路径；模型后端另将子进程工作目录设为runner目录。没有添加会隐藏既有模型目录的`ProtectHome`或`PrivateTmp`设置。
 
-`--service-user`默认为`root`，用于兼容已有试验机，并非通用生产建议。可改为一个**已存在**的普通服务账号；需由操作者确认该账号对API、runner、权重、模型venv和来源审计文件的读/执行权限，以及对完整状态目录的写权限。生成器不创建账号或自动更改模型目录权限。
+`--service-user`默认为`root`，也可指定一个**已存在**的普通服务账号；该账号需要对API、runner、权重、模型venv和来源审计文件的读/执行权限，以及对完整状态目录的写权限。生成器不创建账号或自动更改模型目录权限。
 
 普通配置与密钥分别位于目标主机的`/etc/h3-api/h3-api.env`和`/etc/h3-api/h3-api-secret.env`。密钥由操作者单独私有创建；生成器不会取用当前环境中的`H3_API_KEY`。缺少任一必需文件时服务启动失败，不能依赖空密钥启动。环境文件供systemd读取，不应直接source到shell。
 

@@ -2,7 +2,7 @@
 
 以**自己部署的 H3** 为生成引擎的单用户 Web 工作台：参考图 + 创作要求 → M3 生成分镜 → 人工确认 →
 自部署 H3 逐镜生成 → 技术检查 + 可选 M3 看片 → 分镜级人工处理 / 续跑 → FFmpeg 合成成片。
-本方案配置 `H3_PROVIDER=local`、`M3_PROVIDER=official`，H3 在大内存 CPU 主机上推理，M3 使用官方 API。
+工作台配置 `H3_PROVIDER=local`、`M3_PROVIDER=official`，H3 在大内存 CPU 主机上推理，M3 使用官方 API。
 Web 服务只监听 `127.0.0.1`，配置和素材保存在本机；H3 请求发送到自己的服务，
 M3 所需文本和图片/视频发送到配置的 M3 API。
 
@@ -68,7 +68,7 @@ backend/
 │   ├── compose.py              # 合成：归一化/字幕/转场/BGM
 │   ├── storyboard_schema.py    # 分镜模型、规则引擎、H3 请求拼装、内容指纹、看片结论模型
 │   ├── providers/
-│   │   ├── h3_official.py      # 官网 H3 V2 客户端
+│   │   ├── h3_official.py      # V2 协议客户端，由本地 provider 复用
 │   │   ├── h3_local.py         # 本地 H3：单参考图、稳定提交幂等键
 │   │   ├── h3_mock.py          # 假 H3
 │   │   ├── m3_official.py      # 官网 M3 Chat Completions（分镜/评审/看片 video_url+tools）
@@ -95,7 +95,7 @@ python3.12 -m venv .venv
 cp .env.local.example .env
 ```
 
-已有实例直接编辑自己的 `.env`。新复制的模板将 M3 设为 `mock`；使用本方案时编辑以下配置，
+已有实例直接编辑自己的 `.env`。新复制的模板将 M3 设为 `mock`；连接模型服务时编辑以下配置，
 将 M3 改为 `official`，并填入两个服务各自的密钥：
 
 ```dotenv
